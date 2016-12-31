@@ -4,7 +4,7 @@
 3. install php on server
 4. get account at http://freedns.afraid.org/
 5. add your domain (get one if you need it)
-6. follow instructions there
+6. follow instructions on freedns.afraid.org to set up the dynamic dns
 7. setup router port forwarding (mine is a two step with router/modem to router)
    -port forwarding on modem to the router
    -port forwarding to server on router to the ip of the web server
