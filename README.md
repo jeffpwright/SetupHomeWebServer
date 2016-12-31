@@ -1,14 +1,81 @@
 # SetupHomeWebServer
-1. Install Apache on server
-2. install mysql on server
-3. install php on server
+1. Install Apache on server - follow instructions
+2. install mysql on server - follow instructions
+3. install php on server - follow instructions
+  check it is all up and running
+  enter the local network ip of your server in your browser to see the ubuntu apache server message
+  add /info.php to see the php info page served up by php
+  do sudo service mysql status to see that mysql is up
 4. get account at http://freedns.afraid.org/
 5. add your domain (get one if you need it)
+    -go to your registrar and point your nameservers to the freedns.afraid.org nameservers
+    -add them to freedns.afraid.org (I picked shared private -- the free option)
+    -add the subdomains to your domain (just hit "add" at the top of the frame and they will all be added)
+    -this is all documented in the freedns.afraid.org instructions
 6. follow instructions on freedns.afraid.org to set up the dynamic dns
+   -I have a Buffalo router with the ddns already integrated; if you have to use a script you will have to look up how to find/install one
+   http://freedns.afraid.org/guide/dd-wrt/ (for my Buffalo router)
 7. setup router port forwarding (mine is a two step with router/modem to router)
    -port forwarding on modem to the router
-   -port forwarding to server on router to the ip of the web server
+
+   -port forwarding to server on router to the ip of the web server (mind is a buffalo router)
+   https://portforward.com/buffalo/dd-wrt/
 8. create subdomain (freedns.afraid.org)
 9. create the subfolder on the web server where the subdomain should get redirected
 10.  configure .htaccess to redirect subdomain requests to the subfolder
+
+Question:
+Is it possible to use .htaccess to rewrite a sub domain to a directory?
+Example:
+http://sub.domain.com/
+shows the content of
+http://domain.com/subdomains/sub/
+Answer:
+-add to .htaccess file...
+
+RewriteEngine on
+RewriteCond %{HTTP_HOST} subdomain.example.com$
+RewriteCond %{REQUEST_URI} !^/subdomains/subdomain
+RewriteRule ^(.*)$ /subdomains/subdomain/$1 [L]
+
+Any other rewrite rules for the rest of the site must go afterwards to prevent them from interfering with your subdomain rewrites.
+http://stackoverflow.com/questions/10642426/htaccess-rewrite-subdomain-to-directory
+
 11. configure the apache default config file to allow redirects
+You should place the .htacess file at /var/www/html. If you don't have a html folder place it in www directory.
+Before that you need to change some other configurations. Since you need to enable url rewriting you should first enable it. This can be done by the following command.
+sudo a2enmod rewrite
+Then you should change the Apache default configuration file. Open this file by entering
+sudo nano /etc/apache2/sites-available/default.
+Once inside that file, find the following section, and change the line that says AllowOverride from None to All. The section should now look like this:
+<Directory /var/www/>
+                Options Indexes FollowSymLinks MultiViews
+                AllowOverride All
+                Order allow,deny
+                allow from all
+ </Directory>
+After you have completed this, restart the apache server by the following command
+sudo service apache2 restart
+This should do the job.
+http://webmasters.stackexchange.com/questions/78290/where-how-to-put-htaccess-files
+
+Exploring the Default Virtual Host File
+The default Virtual Host declaration can be found in a file called "default" in the "sites-available" directory.
+We can learn about the general format of a Virtual Host file by examining this file. Open the file with the following command:
+sudo nano /etc/apache2/sites-available/default  (mine is /etc/apache2/sites-available/00-default.conf)
+<VirtualHost *:80>
+        ServerAdmin webmaster@localhost
+
+        DocumentRoot /var/www
+        <Directory />
+                Options FollowSymLinks
+                AllowOverride None
+        </Directory>
+        <Directory /var/www/>
+                Options Indexes FollowSymLinks MultiViews
+                AllowOverride None
+                Order allow,deny
+                allow from all
+        </Directory>
+. . .
+https://www.digitalocean.com/community/tutorials/how-to-configure-the-apache-web-server-on-an-ubuntu-or-debian-vps
